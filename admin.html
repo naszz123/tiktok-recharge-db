@@ -1,0 +1,112 @@
+<h2>Admin</h2>
+
+<div id="userList"></div>
+
+<h3>Add user</h3>
+<input id="uUser" placeholder="username"><br>
+<input id="uPass" placeholder="password"><br>
+<select id="uRole">
+  <option>User</option>
+  <option>Admin</option>
+  <option>Developer</option>
+</select><br><br>
+
+<button onclick="addUser()">Add</button>
+
+<script>
+const session = JSON.parse(localStorage.getItem("user"));
+if (!session) location.href = "login.html";
+
+let isDev = session.role === "Developer";
+let isAdmin = session.role === "Admin";
+
+async function loadUsers() {
+  const res = await fetch("/api/get-users");
+  const users = await res.json();
+  let html = "";
+
+  users.forEach(u => {
+    html += `<div>
+      <b>${u.username}</b> (${u.role})
+
+      ${isDev ? `
+        <button onclick="editUserPrompt('${u.username}', '${u.password}', '${u.role}')">Edit</button>
+        <button onclick="delUser('${u.username}')">Delete</button>
+      ` : ""}
+
+    </div>`;
+  });
+
+  document.getElementById("userList").innerHTML = html;
+}
+
+async function addUser() {
+  if (!isAdmin && !isDev) {
+    alert("Access denied");
+    return;
+  }
+
+  await fetch("/api/add-user", {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/json",
+      "x-user-role": session.role
+    },
+    body: JSON.stringify({
+      username: uUser.value,
+      password: uPass.value,
+      role: uRole.value
+    })
+  });
+
+  loadUsers();
+}
+
+async function delUser(username) {
+  if (!isDev) return alert("Only Developer can delete users");
+
+  await fetch("/api/delete-user", {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      "x-user-role": session.role
+    },
+    body: JSON.stringify({ username })
+  });
+
+  loadUsers();
+}
+
+function editUserPrompt(username, password, role) {
+  if (!isDev) return alert("Only Developer can edit users");
+
+  const newU = prompt("New username:", username);
+  const newP = prompt("New password:", password);
+  const newR = prompt("New role (User/Admin/Developer):", role);
+
+  if (!newU || !newP || !newR) return;
+
+  editUser(username, newU, newP, newR);
+}
+
+async function editUser(oldUsername, username, password, role) {
+  await fetch("/api/update-user", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "x-user-role": session.role
+    },
+    body: JSON.stringify({
+      oldUsername,
+      username,
+      password,
+      role
+    })
+  });
+
+  loadUsers();
+}
+
+loadUsers();
+  </script>
+  
