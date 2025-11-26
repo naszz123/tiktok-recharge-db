@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Developer Panel</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial;
+    background: #f2f2f2;
+}
+
+.menu-wrapper {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 9999;
+}
+
+.menu-btn {
+  background: rgba(0,0,0,0.65);
+  color: white;
+  border: none;
+  font-size: 22px;
+  padding: 8px 11px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.menu-box {
+  display: none;
+  background: rgba(255,255,255,0.92);
+  border-radius: 10px;
+  box-shadow: 0 6px 30px rgba(0,0,0,0.25);
+  margin-top: 6px;
+  padding: 10px 14px;
+  width: 170px;
+}
+
+.menu-box a {
+  display: block;
+  padding: 10px 0;
+  color: #222;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.menu-box a:hover {
+  color: #ff2a5f;
+}
+
+.container {
+    max-width: 700px;
+    padding: 20px;
+    margin: 80px auto;
+    background: white;
+    box-shadow: 0 6px 30px rgba(0,0,0,0.1);
+    border-radius: 14px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+table th, td {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+}
+
+button.action {
+    background: #ff2a5f;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+}
+button.action:hover {
+    background: #d81c4d;
+}
+</style>
+</head>
+
+<body>
+
+<!-- MENU TITIK 3 -->
+<div class="menu-wrapper">
+  <button class="menu-btn" onclick="toggleMenu()">⋮</button>
+  <div class="menu-box" id="menuBox">
+      <a href="index.html">Home</a>
+      <a href="#" onclick="logout()">Logout</a>
+  </div>
+</div>
+
+<div class="container">
+    <h2>Developer Panel</h2>
+
+    <h3>Tambah User</h3>
+
+    <input id="username" placeholder="Username">
+    <input id="password" placeholder="Password" type="password">
+
+    <select id="role">
+      <option value="User">User</option>
+      <option value="Admin">Admin</option>
+      <option value="Developer">Developer</option>
+    </select>
+
+    <button onclick="addUser()">Tambah User</button>
+
+    <p id="status"></p>
+
+    <h3>Daftar User</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Username</th><th>Role</th><th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="userTable"></tbody>
+    </table>
+</div>
+
+<script>
+function toggleMenu(){
+  const box = document.getElementById('menuBox');
+  box.style.display = box.style.display === 'block' ? 'none' : 'block';
+}
+
+function logout(){
+  localStorage.removeItem("user");
+  window.location.href = "login.html";
+}
+
+async function loadUsers(){
+    let res = await fetch("/api/get-users");
+    let users = await res.json();
+    let tbody = "";
+
+    users.forEach(u => {
+        tbody += `
+          <tr>
+            <td>${u.username}</td>
+            <td>${u.role}</td>
+            <td>
+              <button class="action" onclick="deleteUser('${u.username}')">Hapus</button>
+            </td>
+          </tr>`;
+    });
+
+    document.getElementById("userTable").innerHTML = tbody;
+}
+
+async function addUser(){
+    let username = document.getElementById("username").value.trim();
+    let password = document.getElementById("password").value.trim();
+    let role = document.getElementById("role").value;
+
+    if(!username || !password){
+        document.getElementById("status").innerText = "Isi semua data!";
+        return;
+    }
+
+    let res = await fetch("/api/add-user", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({username,password,role})
+    });
+
+    let data = await res.json();
+    document.getElementById("status").innerText = data.message;
+    loadUsers();
+}
+
+async function deleteUser(username){
+    let res = await fetch("/api/delete-user", {
+        method: "DELETE",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({username})
+    });
+
+    let data = await res.json();
+    alert(data.message);
+    loadUsers();
+}
+
+loadUsers();
+</script>
+
+</body>
+</html>
