@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Authenticating...</title>
+</head>
+<body>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+
+    if (code) {
+      // Exchange code for token (use Vercel API route for security)
+      fetch('/api/github-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.user) {
+          localStorage.setItem('github_user', JSON.stringify(data.user));
+          // Store in GitHub repo
+          fetch('/api/store-user', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user: data.user })
+          }).then(() => {
+            window.location.href = 'index.html';
+          });
+        } else {
+          alert('Login failed');
+          window.location.href = 'login.html';
+        }
+      });
+    } else {
+      window.location.href = 'login.html';
+    }
+  </script>
+</body>
+</html>
