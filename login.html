@@ -43,8 +43,10 @@
       });
       const result = await response.json();
 
-      if (result.success) {
-        localStorage.setItem('user', JSON.stringify({ username })); // Store session
+      localStorage.setItem("user", JSON.stringify({
+    username: dbUser.username,
+    role: dbUser.role
+})); // Store session
         window.location.href = 'index.html';
       } else {
         errorMsg.textContent = 'Invalid username or password';
