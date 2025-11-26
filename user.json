@@ -1,6 +1,17 @@
 [
-  { 
-    "username": "user1", 
-    "password": "pass1" 
+  {
+    "username": "dev1",
+    "password": "passdev",
+    "role": "Developer"
+  },
+  {
+    "username": "admin1",
+    "password": "passadmin",
+    "role": "Admin"
+  },
+  {
+    "username": "user1",
+    "password": "passuser",
+    "role": "User"
   }
 ]
