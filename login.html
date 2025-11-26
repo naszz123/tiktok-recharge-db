@@ -31,31 +31,39 @@
   <script>
     document.getElementById('loginForm').addEventListener('submit', async function(e) {
       e.preventDefault();
-      const username = document.getElementById('username').value;
-      const password = document.getElementById('password').value;
+
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
       const errorMsg = document.getElementById('errorMsg');
 
-      // Call API to verify login
+      // API LOGIN
       const response = await fetch('/api/verify-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
       });
+
       const result = await response.json();
 
-      localStorage.setItem("user", JSON.stringify({
-    username: dbUser.username,
-    role: dbUser.role
-})); // Store session
-        window.location.href = 'index.html';
-      } else {
+      // LOGIN GAGAL
+      if (!result.success) {
         errorMsg.textContent = 'Invalid username or password';
+        return;
       }
+
+      // LOGIN BERHASIL → SIMPAN role & username
+      localStorage.setItem("user", JSON.stringify({
+        username: result.user.username,
+        role: result.user.role
+      }));
+
+      // Arahkan ke index
+      window.location.href = 'index.html';
     });
 
-    function buyAccess() { 
-  window.location.href = 'https://wa.me/6285797237843?text=Permisi%20min%20mau%20beli%20akun%20rechargenya%20,%20berapaan%20?'; 
-}
+    function buyAccess() {
+      window.location.href = 'https://wa.me/6285797237843?text=Permisi%20min%20mau%20beli%20akun%20rechargenya%20,%20berapaan%20?';
+    }
   </script>
 </body>
 </html>
